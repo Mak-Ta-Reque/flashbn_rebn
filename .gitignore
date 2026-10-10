@@ -1,0 +1,8 @@
+# downloaded / generated content
+attacked_models/*
+!attacked_models/README.md
+data/*
+!data/README.md
+results/
+__pycache__/
+.ipynb_checkpoints/
