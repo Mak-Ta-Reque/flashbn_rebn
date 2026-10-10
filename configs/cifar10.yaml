@@ -32,3 +32,8 @@ ft_noise_std: 0.0             # Gaussian noise on the retraining inputs
 affine_l2: 0.0                # L2 anchor on the BN scale/shift ...
 affine_l2_ref: orig           # ... to the original values (orig) or the values after step 1 (init)
 l1_gamma: 0.0                 # L1 on the BN scale
+
+# Step 2 filters against backdoor regrowth (0 = off)
+protect_ratio: 0.0            # freeze the channels whose clean statistics moved most (fraction per BN layer)
+kd_step1: 0.0                 # weight of distillation from the step-1 model
+kd_T: 4.0                     # distillation temperature

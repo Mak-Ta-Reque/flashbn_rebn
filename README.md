@@ -68,3 +68,22 @@ python -m bn_defense.run rebn attacked_models/tiny_preactresnet18_lf_0_1 \
 
 The per-attack tables and the frozen per-attack settings are in
 `notebooks/paper_results.ipynb`.
+
+## Monitoring with TensorBoard
+
+Every run writes TensorBoard events into its result folder:
+
+| Chart | Content |
+|---|---|
+| `stages/` | Clean Acc / ASR / RA after each stage; step 0 is the undefended model |
+| `retrain/` | ReBN only, per epoch: Clean Acc / ASR / RA (epoch 0 = after FlashBN), training loss, training accuracy, learning rate |
+| `final/` | Final metrics |
+| Text tab | Full settings and metrics |
+
+```bash
+tensorboard --logdir results --port 6006      # then open http://localhost:6006
+```
+
+- **Older TensorBoard (e.g. 2.7) with protobuf ≥ 4:** start it with
+  `PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION=python`. The code sets this itself for writing.
+- **Remote machine:** open a tunnel first, `ssh -N -L 6006:localhost:6006 <user>@<server>`.

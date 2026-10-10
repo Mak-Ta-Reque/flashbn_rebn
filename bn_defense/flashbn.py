@@ -32,6 +32,11 @@ import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader
 
+try:
+    from torch.utils.tensorboard import SummaryWriter
+except Exception:   # TensorBoard not installed: no event files
+    SummaryWriter = None
+
 from .data import DATASETS, Transformed, get_transform
 from .models import MODELS
 
@@ -282,6 +287,7 @@ class FlashBN:
     def __init__(self, cfg, attacked, out_dir, device='cuda'):
         self.cfg, self.attacked, self.out_dir = cfg, attacked, out_dir
         self.device = torch.device(device if torch.cuda.is_available() else 'cpu')
+        self.tb = SummaryWriter(out_dir, flush_secs=10) if SummaryWriter is not None else None
 
     def loader(self, dataset, shuffle=False):
         return DataLoader(dataset, batch_size=self.cfg['batch_size'], shuffle=shuffle,
@@ -309,6 +315,14 @@ class FlashBN:
         ra = accuracy(self.model, self.bd_loader, self.device, label_index=2)
         self.metrics[stage] = [round(100 * v, 2) for v in (acc, asr, ra)]
         logging.info(f'{stage:22s} Clean Acc {100 * acc:6.2f} | ASR {100 * asr:6.2f} | RA {100 * ra:6.2f}')
+        self.log_scalars('stages', self.metrics[stage], len(self.metrics) - 1)   # 0 = original, then each stage
+        return self.metrics[stage]
+
+    def log_scalars(self, group, values, step):
+        """TensorBoard: <group>/clean_acc, <group>/asr, <group>/ra at `step`."""
+        if self.tb is not None:
+            for name, v in zip(('clean_acc', 'asr', 'ra'), values):
+                self.tb.add_scalar(f'{group}/{name}', v, step)
 
     def clean_pool(self):
         """`pool_size` clean training images (test transform), drawn with `pool_seed`."""
@@ -377,6 +391,11 @@ class FlashBN:
             json.dump(self.metrics, f, indent=1)
         acc, asr, ra = self.metrics['final']
         logging.info(f'Final  Clean Acc {acc:.2f} | ASR {asr:.2f} | RA {ra:.2f}')
+        if self.tb is not None:
+            self.log_scalars('final', self.metrics['final'], 0)
+            self.tb.add_text('settings', '    ' + json.dumps(self.cfg, indent=1).replace('\n', '\n    '))
+            self.tb.add_text('metrics', '    ' + json.dumps(self.metrics, indent=1).replace('\n', '\n    '))
+            self.tb.close()
 
     def run(self):
         self.setup()
