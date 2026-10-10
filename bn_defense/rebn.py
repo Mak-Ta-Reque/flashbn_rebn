@@ -1,8 +1,8 @@
 """ReBN = FlashBN (step 1) + step 2: retrain only the BN scale/shift on a small clean subset.
 Convolutions and the classifier stay frozen; channels zeroed by BN fine-pruning stay zero.
 
-Step 2: SGD (momentum 0.9, cosine schedule) on `ft_ratio` of the clean training set for
-`epochs` epochs, BN running statistics frozen or updated (`bn_stats`). Optional: Gaussian
+Step 2: `ft_optimizer` (sgd: momentum 0.9 | adam | adamw with `weight_decay`), cosine schedule per
+epoch, on `ft_ratio` of the clean training set for `epochs` epochs, BN running statistics frozen or updated (`bn_stats`). Optional: Gaussian
 input noise (`ft_noise_std`), an L2 anchor on the BN scale/shift (`affine_l2`, anchored at the
 original values or at the values after step 1: `affine_l2_ref` = orig | init), and L1 on the
 BN scale (`l1_gamma`). epochs = 0 gives step 1 only.
@@ -95,7 +95,12 @@ class ReBN(FlashBN):
             p.requires_grad_(False)
         for p in params:
             p.requires_grad_(True)
-        optimizer = torch.optim.SGD(params, lr=cfg['lr'], momentum=0.9)
+        if cfg['ft_optimizer'] == 'adam':
+            optimizer = torch.optim.Adam(params, lr=cfg['lr'])
+        elif cfg['ft_optimizer'] == 'adamw':
+            optimizer = torch.optim.AdamW(params, lr=cfg['lr'], weight_decay=cfg['weight_decay'])
+        else:
+            optimizer = torch.optim.SGD(params, lr=cfg['lr'], momentum=0.9)
         scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, cfg['epochs'])
 
         for epoch in range(cfg['epochs']):
