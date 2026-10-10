@@ -1,47 +1,46 @@
-# attacked_models/: put the downloaded attacked models here
+# attacked_models/: put the attacked models here
 
-Put one folder per attacked model, in the BackdoorBench format, directly inside this
-folder:
+Each attacked model is one folder with two files:
 
 ```
 attacked_models/
 ├── cifar10_preactresnet18_combat_pipeline/
-│   ├── attack_result.pt        # required: backdoored weights + poisoned test set
-│   └── bd_test_dataset/        # poisoned test images (if the attack stored them as files)
+│   ├── model.pt              # backdoored weights + architecture, dataset, number of classes
+│   └── poisoned_test.npz     # poisoned test images: images (N x H x W x 3, uint8), target, label
 ├── tiny_preactresnet18_blended_0_1/
-│   ├── attack_result.pt
-│   └── bd_test_dataset/
+│   ├── model.pt
+│   └── poisoned_test.npz
 └── ...
 ```
 
-## Getting the models
+- `model.pt` holds the backdoored network.
+- `poisoned_test.npz` holds every non-target test image with the trigger already applied.
+  `target` is the label the attack wants and `label` is the true class; ASR and RA are
+  computed from them.
+- A model folder needs nothing else: no attack code, trigger generator or extra paths.
 
-1. Download the attacked-model folders.
-   - The paper's 17 models: <!-- TODO: add the download link -->.
-   - Standard BackdoorBench models can also be used, for example from the BackdoorBench
-     model zoo (https://github.com/SCLBD/BackdoorBench). Each download contains
-     `attack_result.pt` and `bd_test_dataset/`.
-2. Unpack each model folder into `attacked_models/`, keeping the folder name. Copying
-   or symlinking works.
-3. Check the files: `ls attacked_models/*/attack_result.pt`.
+## Getting the paper's models
 
-The notebook (`notebooks/paper_results.ipynb`) expects these 17 folder names. A missing
-model is skipped with a message.
+1. Download the 17 model folders: <!-- TODO: add the download link -->.
+2. Unpack them here, keeping the folder names:
 
-| Dataset | Folder names |
-|---|---|
-| CIFAR-10 | `cifar10_preactresnet18_<attack>_pipeline` for `reattack_bb__from_badnet__def_nad`, `ctrl`, `ftrojann`, `bpp`, `poison_ink`, `diffusion_backdoor`, `adaptive_blend`, `combat` |
-| Tiny ImageNet | `tiny_preactresnet18_<attack>` for `badnet_0_1`, `blended_0_1`, `lf_0_1`, `ssba_0_1`, `wanet_0_1`, `inputaware_0_1`, `bpp_0_1`, `trojannn_0_1`, `sig_0_005` |
+   | Dataset | Folder names |
+   |---|---|
+   | CIFAR-10 | `cifar10_preactresnet18_<attack>_pipeline` for `reattack_bb__from_badnet__def_nad`, `ctrl`, `ftrojann`, `bpp`, `poison_ink`, `diffusion_backdoor`, `adaptive_blend`, `combat` |
+   | Tiny ImageNet | `tiny_preactresnet18_<attack>` for `badnet_0_1`, `blended_0_1`, `lf_0_1`, `ssba_0_1`, `wanet_0_1`, `inputaware_0_1`, `bpp_0_1`, `trojannn_0_1`, `sig_0_005` |
 
-## Your own attacked models
+3. Check: `ls attacked_models/*/model.pt`. The notebook skips any model that is missing.
 
-Any BackdoorBench attack output folder works (`record/<save_folder_name>/` after
-running a BackdoorBench attack script), as long as the model is a PreActResNet-18 on
-CIFAR-10 or Tiny ImageNet. Run a defense on it with:
+## Using a BackdoorBench model
+
+A BackdoorBench attack folder holds `attack_result.pt` and `bd_test_dataset/`. It comes
+from BackdoorBench's model zoo or from running one of its attack scripts. Convert it
+once:
 
 ```bash
-python -m bn_defense.run flashbn attacked_models/<folder>
+python -m bn_defense.convert <backdoorbench folder> attacked_models/<name>
 ```
 
-Poisoned-image paths stored inside `attack_result.pt` that no longer exist are looked up
-in `<folder>/bd_test_dataset/`, so folders can be moved freely.
+- The poisoned test images are copied exactly, not regenerated, so results are the same as
+  in BackdoorBench.
+- Supported models: PreActResNet-18 on CIFAR-10 or Tiny ImageNet.

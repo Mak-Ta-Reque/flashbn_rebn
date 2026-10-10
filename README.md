@@ -19,14 +19,15 @@ flashbn_rebn/
 ├── requirements.txt
 ├── bn_defense/               the code
 │   ├── models.py             PreActResNet-18
-│   ├── data.py               clean datasets + loading of attacked models (BackdoorBench format)
+│   ├── data.py               clean datasets + loading of attacked models
 │   ├── flashbn.py            FlashBN (step 1)
 │   ├── rebn.py               ReBN (step 1 + BN-only retraining)
-│   └── run.py                command line: python -m bn_defense.run
+│   ├── run.py                command line: python -m bn_defense.run
+│   └── convert.py            BackdoorBench attack folder -> attacked-model folder
 ├── configs/                  defaults per dataset (cifar10.yaml, tiny.yaml)
 ├── notebooks/
 │   └── paper_results.ipynb   runs every paper experiment and prints the tables
-├── attacked_models/          PUT THE ATTACKED MODELS HERE (see attacked_models/README.md)
+├── attacked_models/          PUT THE ATTACKED MODELS HERE: <model>/model.pt + poisoned_test.npz
 ├── data/                     clean datasets, downloaded automatically (see data/README.md)
 └── results/                  outputs, one folder per model and run
 ```
@@ -37,8 +38,8 @@ flashbn_rebn/
 pip install -r requirements.txt   # Python >= 3.8, PyTorch with CUDA
 
 # 1. Attacked models: download them and unpack each model folder into attacked_models/,
-#    e.g. attacked_models/tiny_preactresnet18_blended_0_1/attack_result.pt
-#    (details and the expected folder names: attacked_models/README.md)
+#    e.g. attacked_models/tiny_preactresnet18_blended_0_1/{model.pt, poisoned_test.npz}
+#    (folder names, and converting BackdoorBench models: attacked_models/README.md)
 
 # 2. Run everything from the notebook (start Jupyter in this folder)
 jupyter notebook notebooks/paper_results.ipynb

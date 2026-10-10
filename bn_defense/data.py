@@ -1,8 +1,9 @@
-"""Clean datasets, transforms, and loading of attacked models saved in the BackdoorBench
-format (<model folder>/attack_result.pt, poisoned test images in <model folder>/bd_test_dataset/)."""
+"""Clean datasets, transforms, and loading of attacked-model folders (model.pt +
+poisoned_test.npz; bn_defense/convert.py creates them from BackdoorBench attack folders)."""
 import os
 import shutil
 
+import numpy as np
 import torch
 from PIL import Image
 from torch.utils.data import Dataset
@@ -78,57 +79,28 @@ class Transformed(Dataset):
 
 
 class PoisonedTestSet(Dataset):
-    """Poisoned test images of an attack: returns (image, attack target, true label).
-    Images are kept in the attack result or stored as files; a stored path that does not
-    exist (e.g. after downloading the folder) is looked up inside the model folder."""
+    """Poisoned test images of an attack: returns (image, attack target, true label)."""
 
-    def __init__(self, state, clean_test, transform, model_dir):
-        container = state['bd_data_container']
-        self.items = container['data_dict']
-        self.on_disk = container['save_folder_path'] is not None
-        self.index = state['original_index_array']
-        self.poisoned = state['poison_indicator']
-        self.clean_test, self.transform, self.model_dir = clean_test, transform, model_dir
+    def __init__(self, images, target, label, transform):
+        self.images, self.target, self.label, self.transform = images, target, label, transform
 
     def __len__(self):
-        return len(self.index)
-
-    def _path(self, path):
-        if os.path.exists(path):
-            return path
-        for sub in ('bd_test_dataset', 'bd_train_dataset'):
-            if f'{sub}/' in path:
-                return os.path.join(self.model_dir, sub, path.rsplit(f'{sub}/', 1)[1])
-        return path
+        return len(self.images)
 
     def __getitem__(self, i):
-        j = self.index[i]
-        if self.poisoned[j] == 0:
-            img, label = self.clean_test[j]
-            target = label
-        elif self.on_disk:
-            item = self.items[j]
-            with Image.open(self._path(item['path'])) as f:
-                img = f.copy()
-            target, label = item['other_info']
-        else:
-            img, target, label = self.items[j]
-        if not isinstance(img, Image.Image):
-            img = transforms.ToPILImage()(img)
-        return self.transform(img), target, label
+        return self.transform(Image.fromarray(self.images[i])), self.target[i], self.label[i]
 
 
 class AttackedModel:
-    """An attacked model folder: the backdoored weights, its clean datasets and the
-    poisoned test set (BackdoorBench attack_result.pt)."""
+    """An attacked-model folder: model.pt (backdoored weights) and poisoned_test.npz (the
+    poisoned test images), plus the clean datasets of its dataset."""
 
     def __init__(self, model_dir, data_dir='data'):
-        result = torch.load(os.path.join(model_dir, 'attack_result.pt'), map_location='cpu')
+        info = torch.load(os.path.join(model_dir, 'model.pt'), map_location='cpu')
         self.name = os.path.basename(os.path.normpath(model_dir))
-        self.dataset = result['clean_data']
-        self.arch = result['model_name']
-        self.num_classes = result['num_classes']
-        self.state_dict = {k[7:] if k.startswith('module.') else k: v for k, v in result['model'].items()}
+        self.dataset, self.arch, self.num_classes = info['dataset'], info['arch'], info['num_classes']
+        self.state_dict = info['state_dict']
         self.clean_train, self.clean_test = clean_datasets(self.dataset, data_dir)
-        test_tf = get_transform(self.dataset, train=False)
-        self.bd_test = PoisonedTestSet(result['bd_test'], self.clean_test, test_tf, model_dir)
+        with np.load(os.path.join(model_dir, 'poisoned_test.npz')) as z:
+            images, target, label = z['images'], z['target'], z['label']
+        self.bd_test = PoisonedTestSet(images, target, label, get_transform(self.dataset, train=False))

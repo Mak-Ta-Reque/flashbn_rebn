@@ -29,7 +29,7 @@ CHOICES = {'init_mode': ['hist_clip', 'pgd_hist_clip', 'confidence_recalib_opt',
 def parse(argv):
     p = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     p.add_argument('method', choices=list(METHODS))
-    p.add_argument('model', help='attacked model folder containing attack_result.pt')
+    p.add_argument('model', help='attacked model folder (model.pt + poisoned_test.npz)')
     p.add_argument('--out_dir', help='default: results/<model>/<method>/')
     p.add_argument('--data_dir', default=os.path.join(ROOT, 'data'))
     p.add_argument('--device', default='cuda')
