@@ -13,34 +13,36 @@ attacked_models/
 └── ...
 ```
 
-- `model.pt` holds the backdoored network.
-- `poisoned_test.npz` holds every non-target test image with the trigger already applied.
-  `target` is the label the attack wants and `label` is the true class; ASR and RA are
-  computed from them.
-- A model folder needs nothing else: no attack code, trigger generator or extra paths.
+## Getting the models
 
-## Getting the paper's models
-
-1. Download the 17 model folders: <!-- TODO: add the download link -->.
-2. Unpack them here, keeping the folder names:
-
-   | Dataset | Folder names |
-   |---|---|
-   | CIFAR-10 | `cifar10_preactresnet18_<attack>_pipeline` for `reattack_bb__from_badnet__def_nad`, `ctrl`, `ftrojann`, `bpp`, `poison_ink`, `diffusion_backdoor`, `adaptive_blend`, `combat` |
-   | Tiny ImageNet | `tiny_preactresnet18_<attack>` for `badnet_0_1`, `blended_0_1`, `lf_0_1`, `ssba_0_1`, `wanet_0_1`, `inputaware_0_1`, `bpp_0_1`, `trojannn_0_1`, `sig_0_005` |
-
-3. Check: `ls attacked_models/*/model.pt`. The notebook skips any model that is missing.
-
-## Using a BackdoorBench model
-
-A BackdoorBench attack folder holds `attack_result.pt` and `bd_test_dataset/`. It comes
-from BackdoorBench's model zoo or from running one of its attack scripts. Convert it
-once:
+**Option A: the paper's 17 models (recommended).** From the project folder:
 
 ```bash
-python -m bn_defense.convert <backdoorbench folder> attacked_models/<name>
+# download from: LINK_TO_BE_ADDED
+unzip attacked_models.zip -d .
+ls attacked_models/*/model.pt        # 17 files
 ```
 
-- The poisoned test images are copied exactly, not regenerated, so results are the same as
-  in BackdoorBench.
-- Supported models: PreActResNet-18 on CIFAR-10 or Tiny ImageNet.
+**Option B: Tiny ImageNet models from the BackdoorBench model zoo.**
+
+1. Download the PreActResNet-18 Tiny ImageNet attack folders, each with `attack_result.pt` and
+   `bd_test_dataset/`:
+   https://cuhko365.sharepoint.com/:f:/s/SDSbackdoorbench/EmYD8BoPY8hAqNCV_Rb_zwsBFdqf88Yx01xi0V8tc4whvw?e=d7oJNc
+2. Convert each folder:
+
+```bash
+python -m bn_defense.convert <downloaded folder> attacked_models/<folder name from the table>
+```
+
+The CIFAR-10 models are not in the zoo, so use Option A for them. A BackdoorBench folder you
+trained yourself with its attack scripts is converted the same way. The poisoned test images
+are copied, not regenerated.
+
+## Folder names used by the notebook
+
+| Dataset | Folder names |
+|---|---|
+| CIFAR-10 | `cifar10_preactresnet18_<attack>_pipeline` for `reattack_bb__from_badnet__def_nad`, `ctrl`, `ftrojann`, `bpp`, `poison_ink`, `diffusion_backdoor`, `adaptive_blend`, `combat` |
+| Tiny ImageNet | `tiny_preactresnet18_<attack>` for `badnet_0_1`, `blended_0_1`, `lf_0_1`, `ssba_0_1`, `wanet_0_1`, `inputaware_0_1`, `bpp_0_1`, `trojannn_0_1`, `sig_0_005` |
+
+The notebook skips any model that is missing.

@@ -14,7 +14,7 @@ Keep this environment activated for all steps below, so that `jupyter` and `pyth
 
 ## 2. Add the attacked models
 
-Download the attacked models and unpack each model folder into `attacked_models/`:
+Each attacked model is one folder in `attacked_models/`:
 
 ```
 attacked_models/
@@ -24,14 +24,30 @@ attacked_models/
 └── ...
 ```
 
-- **Expected folder names:** listed in `attacked_models/README.md`. A missing model is
-  skipped.
-- **BackdoorBench attack folders** (`attack_result.pt` + `bd_test_dataset/`) can be converted
-  first:
+**Option A: the paper's 17 models (recommended).** Download the archive and unpack it in the
+project folder:
 
 ```bash
-python -m bn_defense.convert <backdoorbench folder> attacked_models/<name>
+# download from: LINK_TO_BE_ADDED
+unzip attacked_models.zip -d .          # creates attacked_models/<17 model folders>
+ls attacked_models/*/model.pt           # should list 17 files
 ```
+
+**Option B: the Tiny ImageNet models from the BackdoorBench model zoo.**
+
+1. Download the PreActResNet-18 Tiny ImageNet attack folders from the zoo:
+   https://cuhko365.sharepoint.com/:f:/s/SDSbackdoorbench/EmYD8BoPY8hAqNCV_Rb_zwsBFdqf88Yx01xi0V8tc4whvw?e=d7oJNc
+   (for example `tiny_preactresnet18_blended_0_1`).
+2. Convert each folder into this format:
+
+```bash
+python -m bn_defense.convert <downloaded folder> attacked_models/tiny_preactresnet18_blended_0_1
+```
+
+The 8 CIFAR-10 models are not in the zoo; they are only in the Option A archive.
+
+- **Expected folder names:** listed in `attacked_models/README.md`.
+- **Missing models:** the notebook skips any model that isn't there.
 
 ## 3. Datasets
 
