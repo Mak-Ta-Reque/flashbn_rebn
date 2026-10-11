@@ -51,6 +51,9 @@ def main(argv=None):
     cfg.update(overrides)
     out_dir = args.out_dir or os.path.join(ROOT, 'results', attacked.name, args.method)
     os.makedirs(out_dir, exist_ok=True)
+    for f in os.listdir(out_dir):   # a failed run must not leave a previous run's results behind
+        if f in ('metrics.json', 'defended_model.pt') or f.startswith('events.out.tfevents'):
+            os.remove(os.path.join(out_dir, f))
     logging.basicConfig(level=logging.INFO, format='%(asctime)s %(message)s', datefmt='%H:%M:%S', force=True,
                         handlers=[logging.FileHandler(os.path.join(out_dir, 'log.txt'), 'w'), logging.StreamHandler()])
     settings = {'method': args.method, 'model': attacked.name, 'overrides': overrides, 'config': cfg}
