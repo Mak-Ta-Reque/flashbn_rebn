@@ -174,39 +174,6 @@ def install_isc(bounds):
         m.register_forward_pre_hook(make_hook(b))
 
 
-def _out_of_range(x, b):
-    """Per image: fraction of channels whose spatial mean or std lies outside the bounds b."""
-    lo_m, hi_m, lo_s, hi_s = [t.view(1, -1) for t in b]
-    mu, sd = x.mean(dim=(2, 3)), x.std(dim=(2, 3))
-    return ((mu < lo_m) | (mu > hi_m) | (sd < lo_s) | (sd > hi_s)).float().mean(1)
-
-
-@torch.no_grad()
-def isc_gate_thresholds(model, x, device, bounds, q):
-    """Per BN layer: the q-quantile over clean images of the out-of-range channel fraction."""
-    fr = {m: [] for m in bounds}
-    _hooked_pass(model, x, device, list(bounds), lambda m, inp, out: fr[m].append(_out_of_range(inp[0], bounds[m]).cpu()),
-                 batch_size=250)
-    return {m: float(torch.quantile(torch.cat(fr[m]), q)) for m in bounds}
-
-
-def install_gated_isc(bounds, thresholds):
-    """Per-sample statistic clipping applied only to images whose out-of-range channel fraction
-    exceeds the layer's clean threshold; other images pass unchanged."""
-    def make_hook(b, thr):
-        lo_m, hi_m, lo_s, hi_s = [t.view(1, -1, 1, 1) for t in b]
-
-        def hook(m, inp):
-            x = inp[0]
-            gate = (_out_of_range(x, b) > thr).view(-1, 1, 1, 1)
-            mu, sd = x.mean(dim=(2, 3), keepdim=True), x.std(dim=(2, 3), keepdim=True)
-            mu_c, sd_c = torch.max(torch.min(mu, hi_m), lo_m), torch.max(torch.min(sd, hi_s), lo_s)
-            return (torch.where(gate, (x - mu) * (sd_c / (sd + 1e-6)) + mu_c, x),)
-        return hook
-    for m, b in bounds.items():
-        m.register_forward_pre_hook(make_hook(b, thresholds[m]))
-
-
 @torch.no_grad()
 def bn_fine_prune(model, x, device, bns, ratio):
     """Zero gamma/beta of the `ratio` fraction of channels with the lowest mean ReLU(BN output)
@@ -397,18 +364,14 @@ class FlashBN:
         before fine-pruning. Returns the fine-pruning masks."""
         cfg = self.cfg
         x, y = self.clean_pool()
-        self.clip, self.isc, self.isc_thr, masks = {}, {}, {}, []
+        self.clip, self.isc, masks = {}, {}, []
         self.init_bn(x, y)
         self.evaluate(f"init ({cfg['init_mode']})")
         if cfg['isc_pct'] > 0:
             conf = select_confident(self.model, x, self.device, cfg['confidence_threshold'])
             self.isc = isc_bounds(self.model, conf, self.device, self.bns, cfg['isc_pct'])
-            if cfg['isc_gate'] > 0:
-                self.isc_thr = isc_gate_thresholds(self.model, conf, self.device, self.isc, cfg['isc_gate'])
-                install_gated_isc(self.isc, self.isc_thr)
-            else:
-                install_isc(self.isc)
-            self.evaluate(f"isc ({cfg['isc_pct']}{', gate ' + str(cfg['isc_gate']) if cfg['isc_gate'] > 0 else ''})")
+            install_isc(self.isc)
+            self.evaluate(f"isc ({cfg['isc_pct']})")
         if after_clipping is not None:
             after_clipping()
         if cfg['fp_ratio'] > 0:
@@ -429,8 +392,7 @@ class FlashBN:
         if self.cfg['save_model']:
             torch.save({'state_dict': self.model.state_dict(),
                         'clip_bounds': {names[m]: [t.cpu() for t in b] for m, b in self.clip.items()},
-                        'isc_bounds': {names[m]: [t.cpu() for t in b] for m, b in self.isc.items()},
-                        'isc_gate_thresholds': {names[m]: t for m, t in self.isc_thr.items()}},
+                        'isc_bounds': {names[m]: [t.cpu() for t in b] for m, b in self.isc.items()}},
                        os.path.join(self.out_dir, 'defended_model.pt'))
         with open(os.path.join(self.out_dir, 'metrics.json'), 'w') as f:
             json.dump(self.metrics, f, indent=1)
