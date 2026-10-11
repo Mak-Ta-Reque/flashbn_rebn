@@ -6,3 +6,13 @@ data/*
 results/
 __pycache__/
 .ipynb_checkpoints/
+
+# Claude Code (local assistant files)
+.claude/
+CLAUDE.md
+CLAUDE.local.md
+.mcp.json
+
+# local environments
+.venv/
+venv/
