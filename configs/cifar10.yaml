@@ -19,8 +19,10 @@ reset_last_n: -1              # reset_affine: last n BN layers (-1 = all)
 fisher_ratio: 0.001           # fisher_noise: fraction of BN parameters replaced
 noise_std: 0.01
 isc_pct: 0.0                  # per-sample statistic clipping to [p, 100-p] (0 = off)
+isc_gate: 0.0                 # clip only images more out-of-range than this clean quantile (0 = all images)
 fp_ratio: 0.0                 # BN fine-pruning: fraction of channels zeroed (0 = off)
 fp_layers: 2                  # ... in the last n BN layers
+fp_refresh: false             # re-measure the running statistics of BN layers after a pruned one
 
 # Step 2 (ReBN only): retrain only the BN scale/shift
 epochs: 20                    # 0 = step 1 only
@@ -32,3 +34,11 @@ ft_noise_std: 0.0             # Gaussian noise on the retraining inputs
 affine_l2: 0.0                # L2 anchor on the BN scale/shift ...
 affine_l2_ref: orig           # ... to the original values (orig) or the values after step 1 (init)
 l1_gamma: 0.0                 # L1 on the BN scale
+uap_weight: 0.0               # universal adversarial unlearning: weight of the perturbed-image loss (0 = off)
+uap_eps: 0.0314               # ... L-inf budget of the shared perturbation (pixel scale, 8/255)
+uap_steps: 1                  # ... sign-gradient steps per batch
+freeze_last_n: 0              # keep the last n BN layers at their step-1 values (0 = train all)
+shortcut_k: 0                 # synthetic backdoors whose gradient subspace is removed from retraining (0 = off)
+shortcut_mode: layer          # global | layer (one subspace per BN layer)
+shortcut_aug_weight: 0.0      # loss on images with a random synthetic trigger and their true labels
+orig_block: 'off'             # off | global | layer: block steps back toward the original (backdoored) BN values
