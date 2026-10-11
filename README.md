@@ -103,12 +103,32 @@ Each run writes to `results/<model>/<method>/` (or `--out_dir`):
 | `settings.json` | The settings used |
 | `log.txt` | The run log |
 
-## 7. Watch runs in TensorBoard
+## 7. Follow the runs live in TensorBoard
 
-```bash
-tensorboard --logdir results --port 6006     # open http://localhost:6006
-```
+Every run writes TensorBoard updates into its results folder while it runs. To follow them:
 
-- **Remote server:** first run `ssh -N -L 6006:localhost:6006 <user>@<server>`.
-- **TensorBoard 2.7 with protobuf 4 or newer:** start it with
-  `PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION=python tensorboard ...`.
+1. Start TensorBoard in a second terminal, with the same environment activated, before or while
+   the notebook runs:
+
+   ```bash
+   tensorboard --logdir results --port 6006 --reload_interval 30
+   ```
+
+2. Open http://localhost:6006. On a remote server, first open a tunnel from your own
+   computer with `ssh -N -L 6006:localhost:6006 <user>@<server>`.
+3. Leave the page open. New runs and new points appear on their own; TensorBoard re-reads
+   `results/` every 30 seconds, and the reload button (top right) updates it at once.
+
+What you can see:
+
+| Section | Content |
+|---|---|
+| `stages/` | Clean Acc / ASR / RA after each defense stage; step 0 is the attacked model |
+| `retrain/` | ReBN only, per epoch: Clean Acc / ASR / RA, training loss, training accuracy, learning rate |
+| `final/` | The final Clean Acc / ASR / RA of each run |
+| Text tab | The full settings and metrics of each run |
+
+- **Choosing runs:** run names follow `<model>/<method>_s<seed>`. Type part of one into
+  the run filter on the left, for example `tiny_`, `rebn_s0` or `blended`.
+- **TensorBoard 2.7 with protobuf 4 or newer:** if it fails to start, use
+  `PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION=python tensorboard --logdir results --port 6006`.
