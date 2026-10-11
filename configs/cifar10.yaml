@@ -25,17 +25,10 @@ fp_layers: 2                  # ... in the last n BN layers
 # Step 2 (ReBN only): retrain only the BN scale/shift
 epochs: 20                    # 0 = step 1 only
 lr: 0.001
-ft_optimizer: sgd             # sgd (momentum 0.9) | adam | adamw
-weight_decay: 0.01            # adamw only
-ft_ratio: 0.02    # 1,000 of 50,000 training images
+ft_ratio: 0.02                # 1,000 of 50,000 training images
 bn_stats: frozen              # frozen | update (BN running statistics during retraining)
 test_interval: 10             # evaluate every n epochs (and after the last)
 ft_noise_std: 0.0             # Gaussian noise on the retraining inputs
 affine_l2: 0.0                # L2 anchor on the BN scale/shift ...
 affine_l2_ref: orig           # ... to the original values (orig) or the values after step 1 (init)
 l1_gamma: 0.0                 # L1 on the BN scale
-
-# Step 2 filters against backdoor regrowth (0 = off)
-protect_ratio: 0.0            # freeze the channels whose clean statistics moved most (fraction per BN layer)
-kd_step1: 0.0                 # weight of distillation from the step-1 model
-kd_T: 4.0                     # distillation temperature

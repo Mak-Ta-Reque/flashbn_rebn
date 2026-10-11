@@ -8,8 +8,9 @@ never modified.
   images: exact clean statistics, a closed-form scale/shift, per-channel input clipping,
   and optionally per-sample statistic clipping and BN fine-pruning. It takes no gradient
   step, and the defended model scores each image on its own, in eval mode.
-- **ReBN** is FlashBN followed by retraining of only the BN scale/shift on 1,000 clean
-  images.
+- **ReBN** is FlashBN followed by retraining of only the BN scale/shift on a small clean
+  subset: 1,000 images by default, 5,000 for most attacks in the paper settings. BN
+  fine-pruning before retraining keeps the backdoor from coming back as more data is used.
 
 ## Project layout
 
@@ -63,11 +64,17 @@ python -m bn_defense.run rebn attacked_models/tiny_preactresnet18_lf_0_1 \
 
 | Dataset | No defense | FlashBN | ReBN |
 |---|---|---|---|
-| CIFAR-10 (8 attacks) | 90.3 / 81.4 / 16.2 | 87.9 ± 0.1 / 4.9 ± 0.1 / 74.5 ± 0.2 | 89.3 ± 0.1 / 3.7 ± 0.2 / 72.0 ± 0.3 |
-| Tiny ImageNet (9 attacks) | 56.4 / 97.5 / 1.2 | 53.3 ± 0.1 / 10.3 ± 0.2 / 33.1 ± 0.2 | 50.4 ± 0.1 / 0.6 ± 0.1 / 35.9 ± 0.5 |
+| CIFAR-10 (8 attacks) | 90.3 / 81.4 / 16.2 | 87.9 ± 0.1 / 4.9 ± 0.1 / 74.5 ± 0.2 | 89.8 ± 0.0 / 3.6 ± 0.1 / 72.7 ± 0.4 |
+| Tiny ImageNet (9 attacks) | 56.4 / 97.5 / 1.2 | 53.3 ± 0.1 / 10.3 ± 0.2 / 33.1 ± 0.2 | 51.5 ± 0.3 / 0.5 ± 0.1 / 36.6 ± 0.4 |
 
-The per-attack tables and the frozen per-attack settings are in
-`notebooks/paper_results.ipynb`.
+- **Where to find the details:** the per-attack tables and the frozen per-attack settings
+  are in `notebooks/paper_results.ipynb`.
+- **How the settings were chosen:** on seed 0, from screens of more retraining epochs, more
+  clean data, BN fine-pruning, learning rate and optimizer, and retraining filters.
+- **Where the gains come from:** 10 of the 17 ReBN settings use more clean data, some with
+  50 epochs or fine-pruning.
+- **Where retraining doesn't help:** COMBAT and Poison Ink. Any retraining brings their
+  backdoor back, so ReBN keeps FlashBN's result for them.
 
 ## Monitoring with TensorBoard
 

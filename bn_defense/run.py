@@ -23,8 +23,7 @@ from .rebn import ReBN
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 METHODS = {'flashbn': FlashBN, 'rebn': ReBN}
 CHOICES = {'init_mode': ['hist_clip', 'pgd_hist_clip', 'confidence_recalib_opt', 'reset_affine', 'fisher_noise'],
-           'bn_stats': ['frozen', 'update'], 'affine_l2_ref': ['orig', 'init'],
-           'ft_optimizer': ['sgd', 'adam', 'adamw']}
+           'bn_stats': ['frozen', 'update'], 'affine_l2_ref': ['orig', 'init']}
 
 
 def parse(argv):
