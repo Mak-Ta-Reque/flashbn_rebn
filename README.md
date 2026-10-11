@@ -5,6 +5,10 @@ Adversarial Signals** ([OpenReview](https://openreview.net/forum?id=1YqAFIeJti))
 FlashBN and ReBN backdoor defenses on attacked PreActResNet-18 models (CIFAR-10, Tiny
 ImageNet) and reproduces the paper results.
 
+- **Attacked models:** [huggingface.co/abka03/flashbn_rebn-models](https://huggingface.co/abka03/flashbn_rebn-models)
+  (17 models, see step 2)
+- **Paper:** [OpenReview](https://openreview.net/forum?id=1YqAFIeJti)
+
 ## 1. Install
 
 ```bash
