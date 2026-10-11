@@ -6,8 +6,11 @@ Code to run the FlashBN and ReBN backdoor defenses on attacked PreActResNet-18 m
 ## 1. Install
 
 ```bash
-pip install -r requirements.txt     # Python >= 3.8, PyTorch with CUDA
+python -m venv .venv && source .venv/bin/activate   # or a conda environment; Python >= 3.8
+pip install -r requirements.txt                      # PyTorch with CUDA
 ```
+
+Keep this environment activated for all steps below, so that `jupyter` and `python` come from it.
 
 ## 2. Add the attacked models
 
