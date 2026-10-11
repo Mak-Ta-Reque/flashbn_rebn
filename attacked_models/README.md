@@ -18,7 +18,8 @@ attacked_models/
 **Option A: the paper's 17 models (recommended).** From the project folder:
 
 ```bash
-# download from: LINK_TO_BE_ADDED
+wget https://huggingface.co/abka03/flashbn_rebn-models/resolve/main/attacked_models.zip   # 1.7 GB, from huggingface.co/abka03/flashbn_rebn-models
+sha256sum attacked_models.zip      # should print 2f81bddb7ecc79e2f0cfa2e70c147ea87606cacf56f8e5968d725433ebb5db1d
 unzip attacked_models.zip -d .
 ls attacked_models/*/model.pt        # 17 files
 ```
