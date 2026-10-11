@@ -1,7 +1,9 @@
 # FlashBN and ReBN
 
-Code to run the FlashBN and ReBN backdoor defenses on attacked PreActResNet-18 models
-(CIFAR-10, Tiny ImageNet) and reproduce the paper results.
+Code for the NeurIPS 2026 paper **Backdoor Attacks Rerouted: BatchNorm as a Sink for
+Adversarial Signals** ([OpenReview](https://openreview.net/forum?id=1YqAFIeJti)). It runs the
+FlashBN and ReBN backdoor defenses on attacked PreActResNet-18 models (CIFAR-10, Tiny
+ImageNet) and reproduces the paper results.
 
 ## 1. Install
 
@@ -132,3 +134,32 @@ What you can see:
   the run filter on the left, for example `tiny_`, `rebn_s0` or `blended`.
 - **TensorBoard 2.7 with protobuf 4 or newer:** if it fails to start, use
   `PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION=python tensorboard --logdir results --port 6006`.
+
+## Citation
+
+```bibtex
+@inproceedings{anonymous2026backdoor,
+  title={Backdoor Attacks Rerouted: BatchNorm as a Sink for Adversarial Signals},
+  author={Anonymous},
+  booktitle={The Fortieth Annual Conference on Neural Information Processing Systems},
+  year={2026},
+  url={https://openreview.net/forum?id=1YqAFIeJti}
+}
+```
+
+This code builds on BackdoorBench, whose models and data formats it uses:
+
+```bibtex
+@inproceedings{backdoorbench,
+  title={BackdoorBench: A Comprehensive Benchmark of Backdoor Learning},
+  author={Wu, Baoyuan and Chen, Hongrui and Zhang, Mingda and Zhu, Zihao and Wei, Shaokui and Yuan, Danni and Shen, Chao},
+  booktitle={Thirty-sixth Conference on Neural Information Processing Systems Datasets and Benchmarks Track},
+  year={2022}
+}
+```
+
+## License
+
+[CC BY-NC 4.0](https://creativecommons.org/licenses/by-nc/4.0/): free for non-commercial use with
+attribution; see `LICENSE`. BackdoorBench components and the BackdoorBench model zoo are also
+under CC BY-NC 4.0.
